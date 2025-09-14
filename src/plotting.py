@@ -152,14 +152,14 @@ def plot_gamma_exposure_profile(
         total_gamma_ex_fri = np.array(total_gamma_ex_fri) / 10**9
 
         zero_cross_idx = np.where(np.diff(np.sign(total_gamma)))[0]
-        
         neg_gamma = total_gamma[zero_cross_idx]
         pos_gamma = total_gamma[zero_cross_idx + 1]
         neg_strike = levels[zero_cross_idx]
         pos_strike = levels[zero_cross_idx + 1]
         
         zero_gamma = pos_strike - ((pos_strike - neg_strike) * pos_gamma/(pos_gamma - neg_gamma))
-        zero_gamma = zero_gamma[0]
+        if len(zero_gamma) > 0:
+            zero_gamma = zero_gamma[0]
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -187,13 +187,14 @@ def plot_gamma_exposure_profile(
             line=dict(color='red', width=2, dash='dash'),
             name=f"ES Spot: {spot_price:,.0f}"
         ))
-        fig.add_trace(go.Scatter(
-            x=[zero_gamma, zero_gamma],
-            y=[min(total_gamma), max(total_gamma)],
-            mode='lines',
-            line=dict(color='green', width=2, dash='dash'),
-            name=f"Gamma Flip: {zero_gamma:,.0f}"
-        ))
+        if len(zero_gamma) > 0:
+            fig.add_trace(go.Scatter(
+                x=[zero_gamma, zero_gamma],
+                y=[min(total_gamma), max(total_gamma)],
+                mode='lines',
+                line=dict(color='green', width=2, dash='dash'),
+                name=f"Gamma Flip: {zero_gamma:,.0f}"
+            ))
         fig.update_layout(
             title=f"Gamma Exposure Profile, ES, {reporting_date.strftime('%d %b %Y')}",
             xaxis_title='Index Price',
