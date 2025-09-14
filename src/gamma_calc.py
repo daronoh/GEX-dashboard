@@ -1,11 +1,9 @@
-import re
 import pandas as pd
 
 def calculate_gamma_exposure(
     data: pd.DataFrame,
     spot_price: float
 ) -> pd.DataFrame:
-    # Per‑contract gamma exposure (per 1% underlying move)
     data = data.copy()
     factor = (spot_price ** 2) * 0.01 * 100
 
@@ -17,8 +15,9 @@ def calculate_gamma_exposure(
     )
 
     pivoted = grouped.pivot(index='strike', columns='option_type', values='gamma_exposure').fillna(0)
-    pivoted['total_gamma_exposure'] = pivoted.get('C', 0) - pivoted.get('P', 0)
-    pivoted['total_gamma_exposure'] = pivoted['total_gamma_exposure'] / 1e9
+    pivoted['call_gamma_exposure'] = pivoted.get('C', 0) / 1e9
+    pivoted['put_gamma_exposure'] = - pivoted.get('P', 0) / 1e9
+    pivoted['total_gamma_exposure'] = pivoted['call_gamma_exposure'] + pivoted['put_gamma_exposure']
 
-    result = pivoted.reset_index()[['strike', 'total_gamma_exposure']]
+    result = pivoted.reset_index()[['strike', 'call_gamma_exposure', 'put_gamma_exposure', 'total_gamma_exposure']]
     return result
